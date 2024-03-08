@@ -1,28 +1,6 @@
 import os
 import time
-import tkinter as tk
 import threading
-import win32con
-import win32api
-import pywintypes
-
-# set to true if you're an alt tab gamer
-loadedMessage = False
-
-tilesets = {
-    "IntHydroponics.level": "Dogshit (3)",
-    "IntLivingQuarters.level": "Ramp (3)",
-    "IntCargoBay.level": "Cargo Bay (3)",
-    "IntAmphitheatre.level": "Amphitheatre (3)",
-    "IntIndoctrinationHall.level": "Hall (3)",
-    "IntLunaroCourt.level": "Lunaro (3)",
-    "IntCellBlockA.level": "Brig (3)",
-    "IntSchool.level": "Schoolyard (4)",
-    "IntPark.level": "Statue (4)",
-    "IntParkB.level": "Park (4)",
-    "IntParkC.level": "Roost (4)",
-    "IntShuttleBay.level": "Shipyard (5)"
-}
 
 
 def follow(thefile):
@@ -52,10 +30,11 @@ class Overlay:
                 continue
             if "/Lotus/Levels/Proc/Zariman/ZarimanDirectionalSurvival generating layout" in line:
                 searching = True
-            elif searching:
+            elif searching and ("I:" in line or "C:" in line):
                 print(line)
             if searching and "ResourceLoader" in line:
                 searching = False
+                print()
 
 if __name__ == '__main__':
     print("Cascade Tile Searcher Started; Close this window when done using.")
