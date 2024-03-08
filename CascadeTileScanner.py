@@ -77,6 +77,8 @@ class Overlay:
         tiles = ""
         exocount = 0
         for line in loglines:
+            if not line:
+                continue
             global loadedMessage
             if loadedMessage:
                 if "Cinematic /LotusCinematic0 Play()" in line:
