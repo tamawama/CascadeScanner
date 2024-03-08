@@ -18,7 +18,7 @@ class Overlay:
         pass
 
     def run(self):
-        threading.Thread(target=self.track_tiles).start()
+        self.track_tiles()
 
     def track_tiles(self):
         path = os.getenv('LOCALAPPDATA') + r'\Warframe\EE.log'
