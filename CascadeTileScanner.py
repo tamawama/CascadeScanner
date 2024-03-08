@@ -9,6 +9,10 @@ import pywintypes
 # set to true if you're an alt tab gamer
 loadedMessage = False
 
+connectors = {
+    "test": "bwah"
+}
+
 tilesets = {
     "IntHydroponics.level": "Dogshit (3)",
     "IntLivingQuarters.level": "Ramp (3)",
@@ -45,12 +49,9 @@ class Overlay:
         self.root.configure(bg='black')
         self.root.attributes("-alpha", 0.5)
         self.enable_overlay = True
-        self.label = tk.Label(self.root, text="i stole this from wally :D", fg="white", bg="black",
-                              font=('Times New Roman', 15, ''))
+        self.label = tk.Label(self.root, text="i stole this from wally :D",
+                              fg="white", bg="black", font=('Times New Roman', 15, ''))
         self.label.pack(fill="both", expand=True)
-
-        self.offset_x = 0
-        self.offset_y = 0
 
     def update_overlay(self, text, text_color):
         self.label.config(text=text, fg=text_color)
@@ -70,6 +71,7 @@ class Overlay:
         self.root.mainloop()
 
     def track_tiles(self):
+        global loadedMessage
         path = os.getenv('LOCALAPPDATA') + r'\Warframe\EE.log'
         logfile = open(path)
         loglines = follow(logfile)
@@ -77,9 +79,10 @@ class Overlay:
         tiles = ""
         exocount = 0
         for line in loglines:
+            # if null skip to next line
             if not line:
                 continue
-            global loadedMessage
+
             if loadedMessage:
                 if "Cinematic /LotusCinematic0 Play()" in line:
                     self.update_overlay("Awaiting Cascade...  [LOADED]", "red")
@@ -95,6 +98,7 @@ class Overlay:
                         self.update_overlay(tiles, "magenta")
                     tiles = ""
                     exocount = 0
+
             if "/Lotus/Levels/Proc/Zariman/ZarimanDirectionalSurvival generating layout" in line:
                 searching = True
             if not searching and ("/Lotus/Levels/Proc/TheNewWar/PartTwo/TNWDrifterCampMain" in line or "/Lotus/Levels/Proc/PlayerShip" in line):
