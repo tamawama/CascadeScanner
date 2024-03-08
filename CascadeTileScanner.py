@@ -2,9 +2,11 @@ import os
 import time
 import tkinter as tk
 import threading
-import win32con, win32api, pywintypes
+import win32con
+import win32api
+import pywintypes
 
-#set to true if you're an alt tab gamer
+# set to true if you're an alt tab gamer
 loadedMessage = False
 
 tilesets = {
@@ -22,6 +24,7 @@ tilesets = {
     "IntShuttleBay.level": "Shipyard (5)"
 }
 
+
 def follow(thefile):
     thefile.seek(0, 2)
     while True:
@@ -32,24 +35,23 @@ def follow(thefile):
         yield line
 
 
-class Overlay: 
+class Overlay:
     def __init__(self):
-            self.path = None
-            self.root = tk.Tk()
-            self.root.overrideredirect(True)  
-            self.root.attributes("-topmost", True) 
-            self.root.geometry("10x10")
-            self.root.configure(bg='black')
-            self.root.attributes("-alpha", 0.5) 
-            self.enable_overlay = True
-            self.label = tk.Label(self.root, text="i stole this from wally :D", fg="white", bg="black",
-                                font=('Times New Roman', 15, ''))
-            self.label.pack(fill="both", expand=True)
-        
-            self.offset_x = 0
-            self.offset_y = 0
+        self.path = None
+        self.root = tk.Tk()
+        self.root.overrideredirect(True)
+        self.root.attributes("-topmost", True)
+        self.root.geometry("10x10")
+        self.root.configure(bg='black')
+        self.root.attributes("-alpha", 0.5)
+        self.enable_overlay = True
+        self.label = tk.Label(self.root, text="i stole this from wally :D", fg="white", bg="black",
+                              font=('Times New Roman', 15, ''))
+        self.label.pack(fill="both", expand=True)
 
-            
+        self.offset_x = 0
+        self.offset_y = 0
+
     def update_overlay(self, text, text_color):
         self.label.config(text=text, fg=text_color)
         self.root.update_idletasks()
@@ -61,8 +63,6 @@ class Overlay:
         # The WS_EX_TRANSPARENT flag makes events (like mouse clicks) fall through the window.
         exStyle = win32con.WS_EX_COMPOSITED | win32con.WS_EX_LAYERED | win32con.WS_EX_NOACTIVATE | win32con.WS_EX_TOPMOST | win32con.WS_EX_TRANSPARENT
         win32api.SetWindowLong(hWindow, win32con.GWL_EXSTYLE, exStyle)
-
-    
 
     def run(self):
         threading.Thread(target=self.track_tiles).start()
@@ -103,10 +103,10 @@ class Overlay:
                 if tiles:
                     tiles = tiles + " -> "
                 for key in tilesets.keys():
-                        if key in line:
-                            tiles = tiles + tilesets.get(key)
-                            exocount += int(tilesets.get(key).split("(")[1][0])
-                            break
+                    if key in line:
+                        tiles = tiles + tilesets.get(key)
+                        exocount += int(tilesets.get(key).split("(")[1][0])
+                        break
             elif searching and "ResourceLoader" in line:
                 if exocount <= 10:
                     self.update_overlay(tiles, "red")
@@ -120,7 +120,7 @@ class Overlay:
                 if not loadedMessage:
                     tiles = ""
                     exocount = 0
-                
+
 
 if __name__ == '__main__':
     print("Cascade Tile Searcher Started; Close this window when done using.")
