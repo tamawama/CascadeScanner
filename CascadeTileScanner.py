@@ -25,7 +25,33 @@ tilesets = {
     "IntPark.level": "Statue (4)",
     "IntParkB.level": "Park (4)",
     "IntParkC.level": "Roost (4)",
-    "IntShuttleBay.level": "Shipyard (5)"
+    "IntShuttleBay.level": "Shipyard (5)",
+    "ConCorner01Nook.level": "Corner",
+    "ConCornerPersonalShuttleBay.level": "Corner",
+    "ConCornerShort01.level": "Corner",
+    "ConCornerShort02.level": "Corner",
+    "ConCornerShort03.level": "Corner",
+    "ConCrossShort01.level": "Cross",
+    "ConEWJunctionShort01.level": "EW Junction",
+    "ConEWJunctionShort02.level": "EW Junction",
+    "ConEWStraightShort01.level": "EW Straight",
+    "ConEWStraightShort02.level": "EW Junction",
+    "ConNSJunction01Classroom.level": "NS Junction",
+    "ConNSJunction01OxyGarden.level": "NS Junction",
+    "ConNSJunction02TanksRoom.level": "NS Junction",
+    "ConNSJunction03HallwayBattleZone.level": "NS Junction",
+    "ConNSJunction04Overgrown.level": "NS Junction",
+    "ConNSJunction05ShuttleCrash.level": "NS Junction",
+    "ConNSJunction06MonumentHalls.level": "NS Junction",
+    "ConNSJunction07MonumentShortPass.level": "NS Junction",
+    "ConNSJunctionShort01.level": "NS Junction",
+    "ConNSStraightShort01.level": "NS Straight",
+    "ConNSStraightShort02.level": "NS Straight",
+    "ConNSStraightShort03.level": "NS Straight",
+    "ConNSStraightShort05.level": "NS Straight",
+    "ConNSStraightShort06.level": "NS Straight",
+    "ConNSStraightShortCollapsed01.level": "NS Straight",
+    "ConStraightEWGreenView.level": "EW Straight"
 }
 
 
@@ -76,7 +102,8 @@ class Overlay:
         logfile = open(path)
         loglines = follow(logfile)
         searching = False
-        tiles = ""
+        tiles = []
+        order = ""
         exocount = 0
         for line in loglines:
             # if null skip to next line
@@ -87,7 +114,7 @@ class Overlay:
                 if "Cinematic /LotusCinematic0 Play()" in line:
                     self.update_overlay("Awaiting Cascade...  [LOADED]", "red")
                 if "Play()" in line and "Layer255" in line and not "LotusCinematic" in line:
-                    tiles = tiles + "  [LOADED]"
+                    order = order + "  [LOADED]"
                     if exocount <= 10:
                         self.update_overlay(tiles, "red")
                     elif exocount == 11:
@@ -96,34 +123,39 @@ class Overlay:
                         self.update_overlay(tiles, "cyan")
                     elif exocount == 13:
                         self.update_overlay(tiles, "magenta")
-                    tiles = ""
+                    tiles = []
                     exocount = 0
 
-            if "/Lotus/Levels/Proc/Zariman/ZarimanDirectionalSurvival generating layout" in line:
+            if "/Lotus/Levels/Proc/Zariman/ZarimanDirectionalSurvival generating layout with segments: SLI[CO]CI[CIC]CP" in line:
                 searching = True
+
             if not searching and ("/Lotus/Levels/Proc/TheNewWar/PartTwo/TNWDrifterCampMain" in line or "/Lotus/Levels/Proc/PlayerShip" in line):
                 self.update_overlay("Awaiting Cascade...", "red")
-            if searching and "I:" in line:
-                if tiles:
-                    tiles = tiles + " -> "
-                for key in tilesets.keys():
-                    if key in line:
-                        tiles = tiles + tilesets.get(key)
-                        exocount += int(tilesets.get(key).split("(")[1][0])
-                        break
+
+            if searching and ("I:" in line or "C:" in line):
+                tiles.append(line[line.index("/") + 22:].strip())
+
             elif searching and "ResourceLoader" in line:
+                order = tilesets.get(tiles[0]) + " -> " + tilesets.get(tiles[2]) + " -> " + tilesets.get(
+                    tiles[3]) + " -> " + tilesets.get(tiles[4]) + " -> " + tilesets.get(tiles[5])
+                for tile in order.split("("):
+                    try:
+                        exocount += int(tile[0])
+                    except:
+                        pass                        
                 if exocount <= 10:
-                    self.update_overlay(tiles, "red")
+                    self.update_overlay(order, "red")
                 elif exocount == 11:
-                    self.update_overlay(tiles, "green")
+                    self.update_overlay(order, "green")
                 elif exocount == 12:
-                    self.update_overlay(tiles, "cyan")
+                    self.update_overlay(order, "cyan")
                 elif exocount == 13:
-                    self.update_overlay(tiles, "magenta")
-                searching = False
+                    self.update_overlay(order, "magenta")
                 if not loadedMessage:
-                    tiles = ""
+                    tiles = []
                     exocount = 0
+
+                searching = False
 
 
 if __name__ == '__main__':
