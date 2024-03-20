@@ -133,24 +133,29 @@ class Overlay:
                 self.update_overlay("Awaiting Cascade...", "red")
 
             if searching and ("I:" in line or "C:" in line):
+                print(line[line.index("/") + 22:])
                 tiles.append(line[line.index("/") + 22:].strip())
 
             elif searching and "ResourceLoader" in line:
-                order = tilesets.get(tiles[0]) + " -> " + tilesets.get(tiles[2]) + " -> " + tilesets.get(
-                    tiles[3]) + " -> " + tilesets.get(tiles[4]) + " -> " + tilesets.get(tiles[5])
-                for tile in order.split("("):
-                    try:
-                        exocount += int(tile[0])
-                    except:
-                        pass                        
-                if exocount <= 10:
-                    self.update_overlay(order, "red")
-                elif exocount == 11:
-                    self.update_overlay(order, "green")
-                elif exocount == 12:
-                    self.update_overlay(order, "cyan")
-                elif exocount == 13:
-                    self.update_overlay(order, "magenta")
+                for tile in tiles:
+                    order += tile + " "
+                self.update_overlay(order, "green")
+                order = ""
+                # order = tilesets.get(tiles[0]) + " -> " + tilesets.get(tiles[2]) + " -> " + tilesets.get(
+                #     tiles[3]) + " -> " + tilesets.get(tiles[4]) + " -> " + tilesets.get(tiles[5])
+                # for tile in order.split("("):
+                #     try:
+                #         exocount += int(tile[0])
+                #     except:
+                #         pass                        
+                # if exocount <= 10:
+                #     self.update_overlay(order, "red")
+                # elif exocount == 11:
+                #     self.update_overlay(order, "green")
+                # elif exocount == 12:
+                #     self.update_overlay(order, "cyan")
+                # elif exocount == 13:
+                #     self.update_overlay(order, "magenta")
                 if not loadedMessage:
                     tiles = []
                     exocount = 0
