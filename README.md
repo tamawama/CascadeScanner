@@ -7,7 +7,9 @@ This is a simple program to help you figure out exactly what tiles you have upon
 Feel free to compile it youself with pyinstaller, or just run it through python directly!
 
 # Basic set up
+if this doesn't work, feel free to ask about it
 1. Install python
 2. Open up folder in terminal
 3. Run `pip install -r requirements.txt`
 4. Run `python CascadeTileScanner.py`
+5. (optional) if you want to compile it to an exe, run `pip install pyinstaller` then `pyinstaller CascadeTileScanner.py`
