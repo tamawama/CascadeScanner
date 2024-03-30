@@ -5,3 +5,9 @@ This is a simple program to help you figure out exactly what tiles you have upon
 12 Exolizers = Cyan  
 13 Exolizers = Magenta  
 Feel free to compile it youself with pyinstaller, or just run it through python directly!
+
+# Basic set up
+1. Install python
+2. Open up folder in terminal
+3. Run `pip install -r requirements.txt`
+4. Run `python CascadeTileScanner.py`
