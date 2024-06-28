@@ -7,27 +7,28 @@ import win32api
 import pywintypes
 
 # set to true if you're an alt tab gamer
-loadedMessage = False
+loadedMessage = True
 
 connectors = {
     "test": "bwah"
 }
 
-tilesets = {
-    "IntHydroponics.level": "Dogshit (3)",
-    "IntLivingQuarters.level": "Ramp (3)",
-    "IntCargoBay.level": "Cargo Bay (3)",
-    "IntAmphitheatre.level": "Amphitheatre (3)",
-    "IntIndoctrinationHall.level": "Hall (3)",
-    "IntLunaroCourt.level": "Lunaro (3)",
-    "IntCellBlockA.level": "Brig (3)",
-    "IntSchool.level": "Schoolyard (4)",
-    "IntPark.level": "Statue (4)",
-    "IntParkB.level": "Park (4)",
-    "IntParkC.level": "Roost (4)",
-    "IntShuttleBay.level": "Shipyard (5)"
+original_tilesets = {
+    "IntHydroponics": "Dogshit (3)",
+    "IntLivingQuarters": "Ramp (3)",
+    "IntCargoBay": "Cargo Bay (3)",
+    "IntAmphitheatre": "Amphitheatre (3)",
+    "IntIndoctrinationHall": "Hall (3)",
+    "IntLunaroCourt": "Lunaro (3)",
+    "IntCellBlockA": "Brig (3)",
+    "IntSchool": "Schoolyard (4)",
+    "IntPark": "Statue (4)",
+    "IntParkB": "Park (4)",
+    "IntParkC": "Roost (4)",
+    "IntShuttleBay": "Shipyard (5)"
 }
 
+tilesets = original_tilesets.copy()
 
 def follow(thefile):
     thefile.seek(0, 2)
@@ -37,7 +38,6 @@ def follow(thefile):
             time.sleep(0.1)
             continue
         yield line
-
 
 class Overlay:
     def __init__(self):
@@ -71,23 +71,21 @@ class Overlay:
         self.root.mainloop()
 
     def track_tiles(self):
-        global loadedMessage
+        global loadedMessage, tilesets
         path = os.getenv('LOCALAPPDATA') + r'\Warframe\EE.log'
-        logfile = open(path)
+        logfile = open(path, encoding="utf8", errors="ignore")
         loglines = follow(logfile)
         searching = False
         tiles = ""
         exocount = 0
+        tilecount = 0
         for line in loglines:
             # if null skip to next line
             if not line:
                 continue
 
             if loadedMessage:
-                if "Cinematic /LotusCinematic0 Play()" in line:
-                    self.update_overlay("Awaiting Cascade...  [LOADED]", "red")
                 if "Play()" in line and "Layer255" in line and not "LotusCinematic" in line:
-                    tiles = tiles + "  [LOADED]"
                     if exocount <= 10:
                         self.update_overlay(tiles, "red")
                     elif exocount == 11:
@@ -103,13 +101,17 @@ class Overlay:
                 searching = True
             if not searching and ("/Lotus/Levels/Proc/TheNewWar/PartTwo/TNWDrifterCampMain" in line or "/Lotus/Levels/Proc/PlayerShip" in line):
                 self.update_overlay("Awaiting Cascade...", "red")
-            if searching and "I:" in line:
-                if tiles:
-                    tiles = tiles + " -> "
-                for key in tilesets.keys():
+            if "Added streaming layer /Lotus/Levels/Zariman/" in line:
+                for key in list(tilesets.keys()):
                     if key in line:
-                        tiles = tiles + tilesets.get(key)
+                        print(line, key)
+                        tilecount += 1
+                        if tilecount < 3:
+                            tiles = tiles + tilesets.get(key) + " -> "
+                        if tilecount == 3:
+                            tiles = tiles + tilesets.get(key)
                         exocount += int(tilesets.get(key).split("(")[1][0])
+                        del tilesets[key]  # Remove the found tile
                         break
             elif searching and "ResourceLoader" in line:
                 if exocount <= 10:
@@ -121,12 +123,12 @@ class Overlay:
                 elif exocount == 13:
                     self.update_overlay(tiles, "magenta")
                 searching = False
+                tilecount = 0
                 if not loadedMessage:
                     tiles = ""
                     exocount = 0
-
+                tilesets = original_tilesets.copy()  # Reset the tilesets after 3 tiles found
 
 if __name__ == '__main__':
-    print("Cascade Tile Searcher Started; Close this window when done using.")
     overlay = Overlay()
     overlay.run()

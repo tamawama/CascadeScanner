@@ -1,3 +1,7 @@
 dist
 build
 *.spec
+out
+*.exe
+_internal
+Test
