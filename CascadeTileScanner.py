@@ -5,6 +5,7 @@ import threading
 import win32con
 import win32api
 import pywintypes
+from datetime import datetime
 
 # set to true if you're an alt tab gamer
 loadedMessage = True
@@ -79,56 +80,82 @@ class Overlay:
         tiles = ""
         exocount = 0
         tilecount = 0
+        buffer = ""
+        attempts = 0
+        
         for line in loglines:
-            # if null skip to next line
+            now = datetime.now()
+            milliseconds = now.microsecond // 1000
+            timestamp = now.strftime(f'%H:%M:%S.{milliseconds:03d}')
+            
             if not line:
                 continue
+            
+            buffer += line
+            
+            # Check if the buffer contains a new line character, which should be the end of a line
+            if "\n" in buffer:
+                lines = buffer.split("\n")
+                buffer = lines.pop()
+                
+                for line in lines:
+                    if loadedMessage:
+                        if "Play()" in line and "Layer255" in line and not "LotusCinematic" in line:
+                            if exocount <= 10:
+                                self.update_overlay(tiles, "red")
+                            elif exocount == 11:
+                                self.update_overlay(tiles, "green")
+                            elif exocount == 12:
+                                self.update_overlay(tiles, "cyan")
+                            elif exocount == 13:
+                                self.update_overlay(tiles, "magenta")
+                            
+                            tiles = ""
+                            exocount = 0
 
-            if loadedMessage:
-                if "Play()" in line and "Layer255" in line and not "LotusCinematic" in line:
-                    if exocount <= 10:
-                        self.update_overlay(tiles, "red")
-                    elif exocount == 11:
-                        self.update_overlay(tiles, "green")
-                    elif exocount == 12:
-                        self.update_overlay(tiles, "cyan")
-                    elif exocount == 13:
-                        self.update_overlay(tiles, "magenta")
-                    tiles = ""
-                    exocount = 0
-
-            if "/Lotus/Levels/Proc/Zariman/ZarimanDirectionalSurvival generating layout" in line:
-                searching = True
-            if not searching and ("/Lotus/Levels/Proc/TheNewWar/PartTwo/TNWDrifterCampMain" in line or "/Lotus/Levels/Proc/PlayerShip" in line):
-                self.update_overlay("Awaiting Cascade...", "red")
-            if "Added streaming layer /Lotus/Levels/Zariman/" in line:
-                for key in list(tilesets.keys()):
-                    if key in line:
-                        print(line, key)
-                        tilecount += 1
-                        if tilecount < 3:
-                            tiles = tiles + tilesets.get(key) + " -> "
-                        if tilecount == 3:
-                            tiles = tiles + tilesets.get(key)
-                        exocount += int(tilesets.get(key).split("(")[1][0])
-                        del tilesets[key]  # Remove the found tile
-                        break
-            elif searching and "ResourceLoader" in line:
-                if exocount <= 10:
-                    self.update_overlay(tiles, "red")
-                elif exocount == 11:
-                    self.update_overlay(tiles, "green")
-                elif exocount == 12:
-                    self.update_overlay(tiles, "cyan")
-                elif exocount == 13:
-                    self.update_overlay(tiles, "magenta")
-                searching = False
-                tilecount = 0
-                if not loadedMessage:
-                    tiles = ""
-                    exocount = 0
-                tilesets = original_tilesets.copy()  # Reset the tilesets after 3 tiles found
-
+                    if "/Lotus/Levels/Proc/Zariman/ZarimanDirectionalSurvival generating layout" in line:
+                        searching = True
+                        attempts += 1
+                        print(f"[Attempt {attempts}]")
+                        
+                    if not searching and ("/Lotus/Levels/Proc/TheNewWar/PartTwo/TNWDrifterCampMain" in line or "/Lotus/Levels/Proc/PlayerShip" in line):
+                        self.update_overlay("Awaiting Cascade...", "red")
+                        
+                    if "TacticalAreaMap::AddZone /Lotus/Levels/Zariman/" in line:
+                        for key in sorted(tilesets.keys(), key=len, reverse=True):
+                            if key in line:
+                                tilecount += 1
+                                
+                                if tilecount < 3:
+                                    tiles = tiles + tilesets.get(key) + " -> "
+                                if tilecount == 3:
+                                    tiles = tiles + tilesets.get(key)
+                                    
+                                exocount += int(tilesets.get(key).split("(")[1][0])
+                                
+                                print(f"[{timestamp}] - Key: {key!r} | Tile: {tilesets[key]!r} | Tile #{tilecount!r} \n{line!r}")
+                                
+                                del tilesets[key]  # Remove the found tile
+                                break
+                            
+                    elif searching and "ResourceLoader" in line:
+                        if exocount <= 10:
+                            self.update_overlay(tiles, "red")
+                        elif exocount == 11:
+                            self.update_overlay(tiles, "green")
+                        elif exocount == 12:
+                            self.update_overlay(tiles, "cyan")
+                        elif exocount == 13:
+                            self.update_overlay(tiles, "magenta")
+                            
+                        searching = False
+                        tilecount = 0
+                        
+                        if not loadedMessage:
+                            tiles = ""
+                            exocount = 0
+                        tilesets = original_tilesets.copy()
+                    
 if __name__ == '__main__':
     overlay = Overlay()
     overlay.run()
