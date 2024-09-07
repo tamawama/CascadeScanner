@@ -113,8 +113,7 @@ class Overlay(Gtk.Window):
         tiles = ""
         exocount = 0
         tilecount = 0
-        for line in lo#!/usr/bin/env python
-glines:
+        for line in loglines:
             if not line:
                 continue
 
