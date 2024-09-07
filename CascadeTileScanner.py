@@ -1,13 +1,16 @@
+#!/usr/bin/env python
+# Someone else get it to work perfectly I cba - Abu-Al-Gaming
+
 import os
 import time
-import tkinter as tk
+import gi
 import threading
-import win32con
-import win32api
-import pywintypes
-from datetime import datetime
+import cairo
+gi.require_version('Gtk', '3.0')
+gi.require_version('Gdk', '3.0')
 
-# set to true if you're an alt tab gamer
+from gi.repository import Gtk, Gdk
+
 loadedMessage = True
 
 connectors = {
@@ -40,122 +43,132 @@ def follow(thefile):
             continue
         yield line
 
-class Overlay:
+class Overlay(Gtk.Window):
     def __init__(self):
-        self.path = None
-        self.root = tk.Tk()
-        self.root.overrideredirect(True)
-        self.root.attributes("-topmost", True)
-        self.root.geometry("10x10")
-        self.root.configure(bg='black')
-        self.root.attributes("-alpha", 0.5)
-        self.enable_overlay = True
-        self.label = tk.Label(self.root, text="i stole this from wally :D",
-                              fg="white", bg="black", font=('Times New Roman', 15, ''))
-        self.label.pack(fill="both", expand=True)
+        super().__init__(title="Balls Overlay")
+
+        self.set_decorated(False)
+        self.set_keep_above(True)
+        self.set_app_paintable(True)
+        self.set_default_size(200, 50)
+        self.move(0, 0)
+
+        screen = self.get_screen()
+        visual = screen.get_rgba_visual()
+        if visual and self.get_screen().is_composited():
+            self.set_visual(visual)
+
+        self.connect("draw", self.on_draw)
+
+        self.label = Gtk.Label(label="Waiting for Data...")
+        self.label.set_name("overlay_label")
+
+        css = b"""
+        #overlay_label {
+            font-size: 15px;
+            color: white;
+        }
+        """
+        self.apply_css(css)
+
+        self.add(self.label)
+        self.show_all()
+
+    def apply_css(self, css_data):
+        style_provider = Gtk.CssProvider()
+        style_provider.load_from_data(css_data)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            style_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+
+    def on_draw(self, widget, cr):
+        cr.set_source_rgba(0, 0, 0, 0.6)
+        cr.set_operator(cairo.OPERATOR_OVER)
+        cr.paint()
 
     def update_overlay(self, text, text_color):
-        self.label.config(text=text, fg=text_color)
-        self.root.update_idletasks()
-        width = self.label.winfo_reqwidth() + 2  # Add some padding
-        self.root.geometry(f"{width}x40")
-
-        hWindow = pywintypes.HANDLE(int(self.label.master.frame(), 16))
-        # http://msdn.microsoft.com/en-us/library/windows/desktop/ff700543(v=vs.85).aspx
-        # The WS_EX_TRANSPARENT flag makes events (like mouse clicks) fall through the window.
-        exStyle = win32con.WS_EX_COMPOSITED | win32con.WS_EX_LAYERED | win32con.WS_EX_NOACTIVATE | win32con.WS_EX_TOPMOST | win32con.WS_EX_TRANSPARENT
-        win32api.SetWindowLong(hWindow, win32con.GWL_EXSTYLE, exStyle)
+        self.label.set_text(text)
+        if text_color == "red":
+            self.apply_css(b"#overlay_label { color: red; }")
+        elif text_color == "green":
+            self.apply_css(b"#overlay_label { color: green; }")
+        elif text_color == "cyan":
+            self.apply_css(b"#overlay_label { color: cyan; }")
+        elif text_color == "magenta":
+            self.apply_css(b"#overlay_label { color: magenta; }")
 
     def run(self):
         threading.Thread(target=self.track_tiles).start()
         self.update_overlay("Awaiting Cascade...", "red")
-        self.root.mainloop()
+        Gtk.main()
 
     def track_tiles(self):
         global loadedMessage, tilesets
-        path = os.getenv('LOCALAPPDATA') + r'\Warframe\EE.log'
+        path = os.path.expanduser('~') + '/.local/share/Steam/steamapps/compatdata/230410/pfx/drive_c/users/steamuser/AppData/Local/Warframe/EE.log'
         logfile = open(path, encoding="utf8", errors="ignore")
         loglines = follow(logfile)
         searching = False
         tiles = ""
         exocount = 0
         tilecount = 0
-        buffer = ""
-        attempts = 0
-        
-        for line in loglines:
-            now = datetime.now()
-            milliseconds = now.microsecond // 1000
-            timestamp = now.strftime(f'%H:%M:%S.{milliseconds:03d}')
-            
+        for line in lo#!/usr/bin/env python
+glines:
             if not line:
                 continue
-            
-            buffer += line
-            
-            # Check if the buffer contains a new line character, which should be the end of a line
-            if "\n" in buffer:
-                lines = buffer.split("\n")
-                buffer = lines.pop()
-                
-                for line in lines:
-                    if loadedMessage:
-                        if "Play()" in line and "Layer255" in line and not "LotusCinematic" in line:
-                            if exocount <= 10:
-                                self.update_overlay(tiles, "red")
-                            elif exocount == 11:
-                                self.update_overlay(tiles, "green")
-                            elif exocount == 12:
-                                self.update_overlay(tiles, "cyan")
-                            elif exocount == 13:
-                                self.update_overlay(tiles, "magenta")
-                            
-                            tiles = ""
-                            exocount = 0
 
-                    if "/Lotus/Levels/Proc/Zariman/ZarimanDirectionalSurvival generating layout" in line:
-                        searching = True
-                        attempts += 1
-                        print(f"[Attempt {attempts}]")
-                        
-                    if not searching and ("/Lotus/Levels/Proc/TheNewWar/PartTwo/TNWDrifterCampMain" in line or "/Lotus/Levels/Proc/PlayerShip" in line):
-                        self.update_overlay("Awaiting Cascade...", "red")
-                        
-                    if "Added streaming layer /Lotus/Levels/Zariman/" in line:
-                        for key in sorted(tilesets.keys(), key=len, reverse=True):
-                            if key in line:
-                                tilecount += 1
-                                
-                                if tilecount < 3:
-                                    tiles = tiles + tilesets.get(key) + " -> "
-                                if tilecount == 3:
-                                    tiles = tiles + tilesets.get(key)
-                                    
-                                exocount += int(tilesets.get(key).split("(")[1][0])
-                                
-                                print(f"[{timestamp}] - Key: {key!r} | Tile: {tilesets[key]!r} | Tile #{tilecount!r} \n{line!r}")
-                                
-                                del tilesets[key]  # Remove the found tile
-                                break
-                            
-                    elif searching and "ResourceLoader" in line:
-                        if exocount <= 10:
-                            self.update_overlay(tiles, "red")
-                        elif exocount == 11:
-                            self.update_overlay(tiles, "green")
-                        elif exocount == 12:
-                            self.update_overlay(tiles, "cyan")
-                        elif exocount == 13:
-                            self.update_overlay(tiles, "magenta")
-                            
-                        searching = False
-                        tilecount = 0
-                        
-                        if not loadedMessage:
-                            tiles = ""
-                            exocount = 0
-                        tilesets = original_tilesets.copy()  # Reset the tilesets after 3 tiles found
-                    
+            # Reset when the Layer255 is found
+            if loadedMessage:
+                if "Play()" in line and "Layer255" in line and not "LotusCinematic" in line:
+                    self.update_tiles_overlay(exocount, tiles)
+                    tiles = ""
+                    exocount = 0
+
+            # Start searching for tiles
+            if "/Lotus/Levels/Proc/Zariman/ZarimanDirectionalSurvival generating layout" in line:
+                searching = True
+
+            # Reset if mission has ended or ship loaded
+            if not searching and ("/Lotus/Levels/Proc/TheNewWar/PartTwo/TNWDrifterCampMain" in line or "/Lotus/Levels/Proc/PlayerShip" in line):
+                self.update_overlay("Awaiting Cascade...", "red")
+
+            # Detect the spawned tiles
+            if "Added streaming layer /Lotus/Levels/Zariman/" in line:
+                for key in list(tilesets.keys()):
+                    if key in line:
+                        tilecount += 1
+                        if tilecount < 3:
+                            tiles += tilesets.get(key) + " -> "
+                        elif tilecount == 3:
+                            tiles += tilesets.get(key)
+
+                        exocount += int(tilesets.get(key).split("(")[1][0])
+                        del tilesets[key]
+                        break
+
+            # Finalize tile detection and update overlay
+            elif searching and "ResourceLoader" in line:
+                self.update_tiles_overlay(exocount, tiles)
+                searching = False
+                tilecount = 0
+                if not loadedMessage:
+                    tiles = ""
+                    exocount = 0
+                tilesets = original_tilesets.copy()  # Reset tilesets after 3 tiles found
+
+    def update_tiles_overlay(self, exocount, tiles):
+        """Updates the overlay based on the number of exocount."""
+        if exocount <= 10:
+            self.update_overlay(tiles, "red")
+        elif exocount == 11:
+            self.update_overlay(tiles, "green")
+        elif exocount == 12:
+            self.update_overlay(tiles, "cyan")
+        elif exocount == 13:
+            self.update_overlay(tiles, "magenta")
+
+
 if __name__ == '__main__':
     overlay = Overlay()
     overlay.run()
