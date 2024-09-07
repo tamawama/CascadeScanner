@@ -1,2 +1,3 @@
-pywin32
+pygobject3
+pycairo
 tkinter
