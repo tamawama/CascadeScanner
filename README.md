@@ -1,4 +1,8 @@
 # Cascade Tile Search  
+
+# DISCLAIMER: the scanner is inconsistently showing the wrong amount of exos, there's currently no way for me to fix this as it's not a scanner problem, but rather an ee.log problem, I will keep the release up but right now I would NOT recommend using the scanner.
+
+
 This is a simple program to help you figure out exactly what tiles you have upon loading into a mission to help save time while rerolling. Simply run the script and the overlay will appear to the top left.  
 When loading in to a mission, it will display the 3 main rooms in the map, along with how many exolizers will spawn in that room.  
 Depending on the total amount of exolizers, the color of the HUD will change.  
