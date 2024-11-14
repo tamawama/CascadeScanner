@@ -89,6 +89,7 @@ class Overlay:
 
                 if "ZarimanSurvivalMission.lua: ID" in line:
                     exocount = int(line.split('=')[-1].strip())
+                    print(f"[{timestamp}] - {line}")
                     
                 elif searching and "ReplicaInit complete" in line:
                     color = color_map.get(exocount, "red")
