@@ -1,6 +1,6 @@
 # Cascade Tile Search  
 
-# DISCLAIMER: the scanner is inconsistently showing the wrong amount of exos, there's currently no way for me to fix this as it's not a scanner problem, but rather an ee.log problem, I will keep the release up but right now I would NOT recommend using the scanner.
+# DISCLAIMER: the scanner is inconsistently showing the wrong amount of exos, there's currently no way for me to fix this as it's not a scanner problem, but rather an ee.log problem. As long as you don't mind having -1 exo than the count shows, it seems like the log is consistently generating only 1 exo that doesn't exist, so if you don't mind a potential 533 on what should be a 543, then the scanner is mostly alright to use.
 
 
 This is a simple program to help you figure out exactly what tiles you have upon loading into a mission to help save time while rerolling. Simply run the script and the overlay will appear to the top left.  
