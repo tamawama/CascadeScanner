@@ -59,7 +59,7 @@ class Overlay:
             print("Log file not found.")
             return
         
-        color_map = {10: "red", 11: "green", 12: "cyan", 13: "magenta"}  
+        color_map = {10: "red", 11: "yellow", 12: "green", 13: "cyan", 14: "magenta"}  
 
         with open(path, encoding="utf8", errors="ignore") as logfile:
             loglines = follow(logfile)
