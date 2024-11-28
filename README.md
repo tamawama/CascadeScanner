@@ -4,13 +4,14 @@
 
 
 This is a simple program to help you figure out exactly what tiles you have upon loading into a mission to help save time while rerolling. Simply run the script and the overlay will appear to the top left.  
-When loading in to a mission, it will display the 3 main rooms in the map, along with how many exolizers will spawn in that room.  
+When loading in to a mission it will display the amount of exolizers you have.  
 Depending on the total amount of exolizers, the color of the HUD will change.  
-![image](https://github.com/user-attachments/assets/060c7008-2b52-40a8-acad-469bce6547a3)  
+![python_l3n9Ru5h3m](https://github.com/user-attachments/assets/1605fc82-e7b2-4feb-9519-e61d4f6d53b4)  
 10 or less Exolizers = Red  
-11 Exolizers = Green  
-12 Exolizers = Cyan  
-13 Exolizers = Magenta  
+11 Exolizers = Yellow  
+12 Exolizers = Green  
+13 Exolizers = Cyan  
+14 Exolizers = Magenta  
 
 Feel free to compile it youself with pyinstaller, or just run it through python directly!
 
