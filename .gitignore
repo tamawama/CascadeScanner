@@ -3,5 +3,6 @@ build
 *.spec
 out
 *.exe
+*.ini
 _internal
 Test
