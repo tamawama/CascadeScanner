@@ -12,7 +12,6 @@ import requests
 import pystray
 from io import BytesIO
 from PIL import Image
-from tkinter import messagebox
 
 # Set to True if you're an alt-tab gamer
 loadedMessage = True

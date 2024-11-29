@@ -1,2 +1,4 @@
 pywin32
-tkinter
+pystray
+pillow
+requests
