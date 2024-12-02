@@ -18,11 +18,17 @@ loadedMessage = True
 
 def follow(thefile):
     thefile.seek(0, 2)
+    buffer = ''
     while True:
         line = thefile.readline()
         if not line:
             time.sleep(0.1)
             continue
+        if not line.endswith('\n'):
+            buffer += line
+            continue
+        line = buffer + line
+        buffer = ''
         yield line
 
 class Win32PystrayIcon(pystray.Icon):
@@ -126,7 +132,15 @@ class Overlay:
             self.root.geometry(f"{width}x40")
 
             hWindow = pywintypes.HANDLE(int(self.label.master.frame(), 16))
-            exStyle = win32con.WS_EX_COMPOSITED | win32con.WS_EX_LAYERED | win32con.WS_EX_NOACTIVATE | win32con.WS_EX_TOPMOST | win32con.WS_EX_TRANSPARENT
+            exStyle = (
+                        win32con.WS_EX_COMPOSITED |
+                        win32con.WS_EX_LAYERED |
+                        win32con.WS_EX_NOACTIVATE |
+                        win32con.WS_EX_TOPMOST |
+                        win32con.WS_EX_TRANSPARENT |
+                        win32con.WS_EX_TOOLWINDOW
+                    )
+            
             win32api.SetWindowLong(hWindow, win32con.GWL_EXSTYLE, exStyle)
 
     def toggle_visibility(self):
@@ -156,26 +170,26 @@ class Overlay:
         os._exit(0)
 
     def create_tray_icon(self):
-            """Create the system tray icon."""
-            response = requests.get("https://static.wikia.nocookie.net/warframe/images/8/89/ThraxPlasm.png")
-            image = Image.open(BytesIO(response.content))
+        """Create the system tray icon."""
+        response = requests.get("https://static.wikia.nocookie.net/warframe/images/8/89/ThraxPlasm.png")
+        image = Image.open(BytesIO(response.content))
 
-            self.tray_icon = Win32PystrayIcon(
-                name="Overlay Control",
-                icon=image,
-                title="Cascade Tile Scanner",
-                menu=pystray.Menu(
-                    pystray.MenuItem("Show/Hide Overlay", lambda icon, item: self.toggle_visibility()),
-                    pystray.MenuItem("Transparency Slider", self.open_transparency_slider),
-                    pystray.MenuItem(f"Autohide: {'On (Minimizes to Tray)' if self.autohide else 'Off (Closes Scanner)'}", self.toggle_autohide),
-                    pystray.MenuItem("Check for Updates", self.check_updates),
-                    pystray.MenuItem("Save Settings", self.save_settings),
-                    pystray.MenuItem("Exit", self.exit_application)
-                ),
-                on_double_click=self.toggle_visibility  # Bind the double-click to toggle_visibility
-            )
-            
-            self.tray_icon.run_detached()
+        self.tray_icon = Win32PystrayIcon(
+            name="Overlay Control",
+            icon=image,
+            title="Cascade Tile Scanner",
+            menu=pystray.Menu(
+                pystray.MenuItem("Show/Hide Overlay", lambda icon, item: self.toggle_visibility()),
+                pystray.MenuItem("Transparency Slider", self.open_transparency_slider),
+                pystray.MenuItem(f"Autohide: {'On (Minimizes to Tray)' if self.autohide else 'Off (Closes Scanner)'}", self.toggle_autohide),
+                pystray.MenuItem("Check for Updates", self.check_updates),
+                pystray.MenuItem("Save Settings", self.save_settings),
+                pystray.MenuItem("Exit", self.exit_application)
+            ),
+            on_double_click=self.toggle_visibility  # Bind the double-click to toggle_visibility
+        )
+        
+        self.tray_icon.run_detached()
     
     def check_updates(self):
         """Fetch the title of the latest release from a GitHub repository and show a popup."""
@@ -371,13 +385,14 @@ class Overlay:
             print("Log file not found.")
             return
 
-        color_map = {10: "red", 11: "yellow", 12: "green", 13: "cyan", 14: "magenta"}
+        color_map = {10: "red", 11: "yellow", 12: "cyan", 13: "magenta", 14: "magenta"} # EE.log got really weird after xaku prime, might as well account for 14 lol
 
         with open(self.path, encoding="utf8", errors="ignore") as logfile:
             loglines = follow(logfile)
             searching = False
             exocount = 0
             attempts = 0
+            hidden = False
 
             for line in loglines:
                 now = datetime.now()
@@ -401,10 +416,14 @@ class Overlay:
 
                 if not searching and ("/Lotus/Levels/Proc/TheNewWar/PartTwo/TNWDrifterCampMain" in line or
                                       "/Lotus/Levels/Proc/PlayerShip" in line):
+                    if hidden is True:
+                        self.toggle_visibility()
+                        hidden = False
+                        
                     self.update_overlay("Awaiting Cascade...", "red")
 
                 if "ZarimanSurvivalMission.lua: ID" in line:
-                    exocount = int(line.split('=')[-1].strip())
+                    exocount += 1
                     print(f"[{timestamp}] - {line}")
 
                 elif searching and "ReplicaInit complete" in line:
@@ -415,9 +434,14 @@ class Overlay:
                     if not loadedMessage:
                         exocount = 0
                 
-                if attempts >= 1 and "Zariman Survival (Void Cascade): State Change: ENDLESS" in line:
+                if attempts >= 1 and \
+                hidden is False and (
+                "Zariman Survival (Void Cascade): State Change: ENDLESS" in line or
+                "ZarimanSurvivalMission.lua: ModeState = 4" in line or
+                "ZarimanSurvivalMission.lua: Cleansing SurvivalLifeSupportPillarCorruptible" in line):
                     if self.autohide:
                         self.toggle_visibility()
+                        hidden = True
                     else:
                         self.exit_application()
 
